@@ -50,7 +50,7 @@
 </template>
 
 <script>
-var randomWords = require('random-words');
+var randomWords = require('random-words'); 
 import AOS from "aos";
 
 export default {
