@@ -38,8 +38,9 @@
     <template v-for="(item,i) in tiles" :key="i">
       <div v-if="item.x !== 0" class="tiles" :class="item.type" :style="`top: ${item.y}px; left: ${item.x}px; color: ${item.color};` ">
         <img style="fill: crimson;" :src="getImgUrl(item.type)" alt="">
-        <span>{{item.point}}</span>
-        <!-- <span>{{i}}</span> -->
+        <!-- <span :style="textStyle(item)">{{item.point}}</span> -->
+        <!-- <span>{{item.text}}</span> -->
+        <span>{{i}}</span>
       </div>
     </template>
   </div>
@@ -157,7 +158,7 @@ export default {
 
       for(let i in this.players){
         this.players[i].balance = 0
-        this.players[i].location = 0
+        this.players[i].location = -1
         this.players[i].goingFowrad = true
         this.players[i].hasReturned = false
       }
@@ -202,7 +203,7 @@ export default {
       if(this.currentPlayer.goingFowrad){
         while(count < this.diceNum){
           flag= false
-          await this.sleep(250)
+          await this.sleep(500)
 
           for(let i in this.players){
             console.log('huh?')
@@ -299,16 +300,33 @@ export default {
         
       }
 
-      if(index < 5){
-        style+= 'transform: scaleX(-1); '
-      }else if(index > 14 && index < 20){
-        style+= 'transform: scaleX(-1); '
+      if(player.goingFowrad){
+
+        if(index < 5){
+          style+= 'transform: scaleX(-1); '
+        }else if(index >= 10 && index < 17){
+          style+= 'transform: scaleX(-1); '
+        }else if(index >= 22 && index < 29){
+          style+= 'transform: scaleX(-1); '
+        }
+      }else{
+        if(index > 5){
+          style+= 'transform: scaleX(-1); '
+        }else if(index <= 10 && index > 17){
+          style+= 'transform: scaleX(-1); '
+        }else if(index <= 22 && index > 29){
+          style+= 'transform: scaleX(-1); '
+        }
       }
-      if(index == 0){
+
+
+
+
+      if(index == -1){
         return style + `top: 60px; left: ${60+ (i*20)}px`
       }
       
-      return style + `top: ${(this.tiles[index].y) }px; left: ${10+ (this.tiles[index].x )}px`
+      return style + `top: ${(this.tiles[index].y) + 20 }px; left: ${10+ (this.tiles[index].x )}px`
       // let location = player.location 
       
       // // let side 
@@ -316,6 +334,9 @@ export default {
         
       // }
       // return `top: 250px; left: ${100+ (player.location * 100)}px`
+    },
+    textStyle(item){
+      return `transform: translate(-${item.text}%,-45%)`
     },
 
     getImgUrl(link) {
@@ -562,11 +583,12 @@ input[type=text], select {
 .tiles span{
   font-size:150%;
   color: white;
+  text-align: center;
   
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-30%,-45%)
+  
 }
 
 .triangle img{
@@ -603,7 +625,7 @@ input[type=text], select {
 .player-pawn{
   
   position: absolute;
-  transition: 1s ease-in;
+  transition: 0.75s ease-in;
   z-index: 10;
 }
 
