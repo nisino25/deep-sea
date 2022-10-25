@@ -55,18 +55,21 @@
 
 
   <div class="basic-data">
+
     <div class="card storage">
-      Tank Remain <br> {{storage}} <br><br>
+      Air: {{storage}} <br>
       <span>Round {{round}}/3</span>
     </div>
 
     
-
-    
     <template v-for="(item,i) in players" :key="i">
-      <div class="card players" :style="[currentPlayer?.name == item.name ? '' : 'opacity: 0.5']">{{item.name}} <br> Location: {{item.location}} <br>
-      <span v-if="item.goingFowrad">Fowrad</span>
-      <span v-else>Back</span>
+      <div class="card players" :style="[currentPlayer?.name == item.name ? '' : 'opacity: 0.5']">
+        <div>
+          {{item.name}}: {{item.location}} <br>  
+          <span v-if="item.goingFowrad">Fowrad</span>
+          <span v-else>Back</span>
+
+        </div>
     </div>
     </template>
   </div>
@@ -566,26 +569,44 @@ input[type=text], select {
 
 .basic-data{
   position: absolute;
-  bottom: 5%;
+  bottom: 0px;
   left: 2.5%;
   /* background-color: lightgrey; */
   display: flex;
   justify-content: space-between;
-  width: 70%;
+  width: 60%;
+  height: 100px;
+
   /* transform: translateX(30%) */
 }
 
 .basic-data .card{
-  background-image: linear-gradient(Coral, BlanchedAlmond); 
-  padding: 15px 10px;
-  aspect-ratio: 3/4;
-  width: 20%;
+  background-image: linear-gradient(Coral, BlanchedAlmond);
+  
+  position: relative;
+  /* padding: 0px; */
+  aspect-ratio: 2/1;
+  width: 100px;
+  height: 70px;
   border-radius: 5px;
+  /* width: 100%; */
+  /* padding: 0px; */
+}
+
+.basic-data .card div{
+  padding: 0px;
+  width: 100%;
+  /* background-color: red; */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
 }
 
 .basic-data .storage{
+  width: 100%;
   background-image: linear-gradient( BlanchedAlmond,GreenYellow); 
-  padding: 15px;
+  /* padding: 15px; */
   aspect-ratio: 3/2;
   width: 20%;
   border-radius: 5px;
@@ -593,7 +614,7 @@ input[type=text], select {
 
 .dice{
   position: absolute;
-  bottom: 10%;
+  bottom: 20px;
   right: 7.5%;
   color: white;
 }
