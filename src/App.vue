@@ -26,14 +26,45 @@
     </div>
 
   </transition>
-  <div>CurrentPlayer: {{currentPlayer.name}}</div>
+
+  <div>CurrentPlayer: {{currentPlayer?.name}}</div>
+  <div>order index: {{orderIndex}}</div>
+
+  <div class="submarine">
+    <img src="../public/icons/submarine-svgrepo-com.svg" alt="">
+  </div>
+
+  <div class="tiles">
+    <template v-for="(item,i) in tiles" :key="i">
+      <div v-if="item.x !== 0" class="tiles" :class="item.type" :style="`top: ${item.y}px; left: ${item.x}px; color: ${item.color};` ">
+        <img style="fill: crimson;" :src="getImgUrl(item.type)" alt="">
+        <span>{{item.value}}</span>
+      </div>
+    </template>
+  </div>
+
+  <template v-for="(item,i) in players" :key="i">
+    <div class="player-pawn" :style="getLocation(item)">
+      <img src="../public/icons/diver.png" alt="">
+    </div>
+    
+  </template>
+
+  
 
 
 
   <div class="basic-data">
-    <div class="card storage">Tank Remain <br> {{storage}}</div>
+    <div class="card storage">
+      Tank Remain <br> {{storage}} <br><br>
+      <span>Round {{round}}/3</span>
+    </div>
+
+    
+
+    
     <template v-for="(item,i) in players" :key="i">
-      <div class="card players" :style="[currentPlayer.name == item.name ? '' : 'opacity: 0.5']">{{item.name}} <br> Location: {{item.location}} <br>
+      <div class="card players" :style="[currentPlayer?.name == item.name ? '' : 'opacity: 0.5']">{{item.name}} <br> Location: {{item.location}} <br>
       <span v-if="item.goingFowrad">Fowrad</span>
       <span v-else>Back</span>
     </div>
@@ -42,7 +73,7 @@
 
   <div class="dice">
     <button :style="[hasRolled ? 'opacity: 0.5' : '']" @click="roleTheDice()">Role</button>
-    <button style="margin-left: 20px" :style="[!canGoBack || !currentPlayer.goingFowrad || hasRolled ? 'opacity: 0.5' : '']" @click="changeDirection()">go back</button>
+    <button style="margin-left: 20px" :style="[!canGoBack || !currentPlayer?.goingFowrad || hasRolled ? 'opacity: 0.5' : '']" @click="changeDirection()">go back</button>
     <br>
     <strong>#: {{diceNum}}</strong><br>
     <button :style="[!hasRolled ? 'opacity: 0.5' : '']" @click="nextRole()">Done</button><br>
@@ -52,6 +83,7 @@
 <script>
 var randomWords = require('random-words'); 
 import AOS from "aos";
+import {tiles} from './const/tiles.js'
 
 export default {
   name: 'App',
@@ -74,6 +106,8 @@ export default {
       players: [],
 
       storage: 25,
+      round: 1,
+      roundFlag: false,
 
       
       rolesOrder: [],
@@ -83,9 +117,16 @@ export default {
       diceList: [1,2,3,4,5,6],
       diceNum: 1,
 
+      tiles,
+
     }
   },
   methods:{
+    sleep(ms) {
+      return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+      });
+    },
     startGame(){
       if(this.capacity< 2 || this.capacity > 6) return
 
@@ -130,12 +171,52 @@ export default {
 
     },
 
-    roleTheDice(){
+    setupForNextRound(){
+      if(this.round >=3) return
+      console.log('finction called')
+      
+      
+      this.storage = 25
+      
+      for(let i in this.players){
+        this.players[i].hasReturned = false
+        this.players[i].goingFowrad = true
+      }
+
+      console.table(this.players)
+
+      
+    },
+
+    async roleTheDice(){
       if(this.hasRolled) return
       let index = Math.floor(Math.random()* this.diceList.length)
       this.diceNum = this.diceList[index]
+      let count = 0
+      let flag = false
       if(this.currentPlayer.goingFowrad){
-        this.currentPlayer.location+= this.diceNum
+        while(count < this.diceNum){
+          flag= false
+          await this.sleep(250)
+
+          for(let i in this.players){
+            console.log('huh?')
+            if(this.players[i].location == this.currentPlayer.location +1){
+              console.log(`oh hey : ${this.players[i].name}`)
+              flag = true
+            }
+          }
+
+          this.currentPlayer.location++
+          if(flag) count--
+
+          count++
+        }
+        
+
+
+
+
       }else{
         this.currentPlayer.location-= this.diceNum
         if(this.currentPlayer.location <= 0){
@@ -153,14 +234,26 @@ export default {
 
       let flag= false
       while(!flag){
-        if(this.currentPlayer.hasReturned){
-          this.orderIndex++
+        if(this.currentPlayer?.hasReturned){
+          // this.orderIndex++
+          if(this.hasAllReturned){
+            flag = true
+          }else{
+            this.orderIndex++
+          }
         }else{
           flag = true
         }
       }
       // skipfunction for the players return 
       this.hasRolled = false
+
+      if(!this.hasAllReturned) return
+
+
+      console.log('reahed here?')
+      this.round++
+      this.setupForNextRound()
     },
 
     changeDirection(){
@@ -172,6 +265,21 @@ export default {
       if(!this.currentPlayer.goingFowrad || this.hasRolled || this.currentPlayer.location == 0) return false
 
       return true
+    },
+
+    getLocation(player){
+      // let location = player.location 
+      
+      // // let side 
+      // if(location){
+        
+      // }
+      return `top: 250px; left: ${100+ (player.location * 100)}px`
+    },
+
+    getImgUrl(link) {
+      // return link
+      return require('../public/icons/'+ link + '.svg')
     },
 
     
@@ -193,6 +301,8 @@ export default {
 
       this.startGame()
     },
+
+
     
   },
   mounted(){
@@ -203,6 +313,7 @@ export default {
   },
 
   created(){
+    console.log('hey')
     console.clear()
     AOS.init();
 
@@ -225,11 +336,36 @@ export default {
   computed:{
     currentPlayer(){
       if(!this.players) return
+      // if(this.round == 3) return 'no one'
 
       let player = this.players.find(({ name }) => name === this.rolesOrder[this.orderIndex]);
       return player
     },
+
+    hasAllReturned(){
+      if(!this.players) return
+      for(let i in this.players){
+        if(!this.players[i].hasReturned){
+          return false
+        }
+      }
+
+      return true
+
+    },
   },
+
+  watch:{
+    round(){
+      if(this.round > 3){
+        this.round = 3
+        alert('hey the game is over')
+      }
+    },
+    // orderIndex(){
+    //   console.log(`index: ${this.orderIndex}`)
+    // }
+  }
   
 }
 </script>
@@ -349,23 +485,101 @@ input[type=text], select {
   padding: 2px 10px;
 }
 /* ------------------------------------------------- */
+.submarine{
+  top: -5px;
+  left: 220px;
+
+  aspect-ratio: 2/1;
+  width: 100px;
+  
+  position: absolute;
+  /* background-color: crimson; */
+}
+
+.submarine img{
+  transform: scaleX(-1);
+  width: 175px;
+  height: auto;
+  filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));
+}
+
+.tiles{
+  z-index: 0;
+  width: 90px;
+  
+  position: absolute;
+  /* background-color: purple; */
+  /* position:absolute; */
+}
+
+.tiles img{
+  width: 75px;
+  height: auto;
+  filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));
+}
+
+.tiles span{
+  color: white;
+  
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%)
+}
+
+.square img{
+  width: 70px;
+  height: auto;
+}
+
+.pentagon img{
+  width: 90px;
+  height: auto;
+}
+
+.hexagon img{
+  width: 80px;
+  height: auto;
+}
+
+/* .triangle-tile{ 
+  aspect-ratio: 1/1;
+  width: 90px;
+  
+  position: absolute;
+  background-color: purple;
+} */
+.player-pawn{
+  position: absolute;
+  transition: 1s ease-in;
+}
+
+.player-pawn img{
+  width: 90px;
+  height: auto;
+  transform: rotate(30deg);
+}
+/* ------------------------------------------------- */
+
+
 
 
 .basic-data{
   position: absolute;
   bottom: 5%;
+  left: 2.5%;
   /* background-color: lightgrey; */
   display: flex;
   justify-content: space-between;
-  width: 50%;
-  transform: translateX(30%)
+  width: 70%;
+  /* transform: translateX(30%) */
 }
 
 .basic-data .card{
   background-image: linear-gradient(Coral, BlanchedAlmond); 
-  padding: 15px;
+  padding: 15px 10px;
   aspect-ratio: 3/4;
-  width: 125px;
+  width: 20%;
   border-radius: 5px;
 }
 
@@ -373,13 +587,13 @@ input[type=text], select {
   background-image: linear-gradient( BlanchedAlmond,GreenYellow); 
   padding: 15px;
   aspect-ratio: 3/2;
-  width: 125px;
+  width: 20%;
   border-radius: 5px;
 }
 
 .dice{
   position: absolute;
-  bottom: 15%;
+  bottom: 10%;
   right: 7.5%;
   color: white;
 }
