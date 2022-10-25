@@ -24,16 +24,16 @@ let tiles = [
   {point: 0, type: 'pentagon', belongsTo: 'nobody', value: 3, x: 240, y: 440},
   {point: 0, type: 'pentagon', belongsTo: 'nobody', value: 3, x: 130, y: 440},
   {point: 0, type: 'pentagon', belongsTo: 'nobody', value: 3, x: 40, y: 530},
-  {point: 0, type: 'pentagon', belongsTo: 'nobody', value: 3, x: 130, y: 615},
+  {point: 0, type: 'pentagon', belongsTo: 'nobody', value: 3, x: 130, y: 605},
 
-  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 250, y: 620},
-  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 360, y: 620},
-  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 470, y: 620},
-  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 580, y: 620},
-  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 680, y: 700},
-  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 580, y: 800},
-  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 470, y: 800},
-  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 360, y: 800},
+  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 250, y: 610},
+  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 360, y: 610},
+  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 470, y: 610},
+  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 580, y: 610},
+  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 680, y: 685},
+  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 580, y: 770},
+  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 470, y: 770},
+  {point: 0, type: 'hexagon', belongsTo: 'nobody', value: 4, x: 360, y: 770},
 ]
 
 // let pointInTriangle=[0,1,2,3,0,1,2,3,]
