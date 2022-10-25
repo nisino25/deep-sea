@@ -38,17 +38,20 @@
     <template v-for="(item,i) in tiles" :key="i">
       <div v-if="item.x !== 0" class="tiles" :class="item.type" :style="`top: ${item.y}px; left: ${item.x}px; color: ${item.color};` ">
         <img style="fill: crimson;" :src="getImgUrl(item.type)" alt="">
-        <span>{{item.value}}</span>
+        <span>{{item.point}}</span>
+        <!-- <span>{{i}}</span> -->
       </div>
     </template>
   </div>
 
   <template v-for="(item,i) in players" :key="i">
-    <div class="player-pawn" :style="getLocation(item)">
-      <img src="../public/icons/diver.png" alt="">
+    <div class="player-pawn" :style="getLocation(item,i)">
+      <img src="../public/icons/diver.svg" alt="">
     </div>
     
   </template>
+
+  <!-- <svg src="../public/icons/triangle.svg" style="position: absolute; top: 50%; left: 50%; translate(-50%,-50%), width: 1000px; height: auto;"></svg> -->
 
   
 
@@ -68,7 +71,6 @@
           {{item.name}}: {{item.location}} <br>  
           <span v-if="item.goingFowrad">Fowrad</span>
           <span v-else>Back</span>
-
         </div>
     </div>
     </template>
@@ -270,14 +272,50 @@ export default {
       return true
     },
 
-    getLocation(player){
+    getLocation(player,i){
+      let index = player.location
+
+      // flip or not
+      let style
+      
+      switch(i){
+        case 0:
+          style = 'filter: invert(73%) sepia(6%) saturate(6893%) hue-rotate(311deg) brightness(96%) contrast(106%); '
+          break;
+
+        case 1:
+          style ='filter: invert(87%) sepia(30%) saturate(229%) hue-rotate(351deg) brightness(106%) contrast(97%);'
+          break;
+
+        case 2:
+          style ='filter: invert(42%) sepia(15%) saturate(2441%) hue-rotate(59deg) brightness(90%) contrast(87%);'
+          break;
+
+        // case :
+        //   style =''
+        //   break;
+
+
+        
+      }
+
+      if(index < 5){
+        style+= 'transform: scaleX(-1); '
+      }else if(index > 14 && index < 20){
+        style+= 'transform: scaleX(-1); '
+      }
+      if(index == 0){
+        return style + `top: 60px; left: ${60+ (i*20)}px`
+      }
+      
+      return style + `top: ${(this.tiles[index].y) }px; left: ${10+ (this.tiles[index].x )}px`
       // let location = player.location 
       
       // // let side 
       // if(location){
         
       // }
-      return `top: 250px; left: ${100+ (player.location * 100)}px`
+      // return `top: 250px; left: ${100+ (player.location * 100)}px`
     },
 
     getImgUrl(link) {
@@ -489,8 +527,8 @@ input[type=text], select {
 }
 /* ------------------------------------------------- */
 .submarine{
-  top: -5px;
-  left: 220px;
+  top: 0px;
+  left:30px;
 
   aspect-ratio: 2/1;
   width: 100px;
@@ -516,33 +554,43 @@ input[type=text], select {
 }
 
 .tiles img{
-  width: 75px;
+  width: 95px;
   height: auto;
   filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));
 }
 
 .tiles span{
+  font-size:150%;
   color: white;
   
   position: absolute;
   left: 50%;
   top: 50%;
-  transform: translate(-50%,-50%)
+  transform: translate(-30%,-45%)
+}
+
+.triangle img{
+  filter: invert(29%) sepia(10%) saturate(2619%) hue-rotate(359deg) brightness(95%) contrast(95%);
 }
 
 .square img{
-  width: 70px;
+  width: 85px;
   height: auto;
+  filter: invert(48%) sepia(9%) saturate(2540%) hue-rotate(360deg) brightness(103%) contrast(90%);
 }
 
 .pentagon img{
-  width: 90px;
+  width: 105px;
   height: auto;
+  filter: invert(81%) sepia(9%) saturate(3224%) hue-rotate(347deg) brightness(82%) contrast(79%);
+
+
 }
 
 .hexagon img{
-  width: 80px;
+  width: 95px;
   height: auto;
+  filter: invert(86%) sepia(17%) saturate(4073%) hue-rotate(347deg) brightness(99%) contrast(82%);
 }
 
 /* .triangle-tile{ 
@@ -553,15 +601,23 @@ input[type=text], select {
   background-color: purple;
 } */
 .player-pawn{
+  
   position: absolute;
   transition: 1s ease-in;
+  z-index: 10;
 }
 
 .player-pawn img{
+  /* transform: scaleX(-1); */
   width: 90px;
   height: auto;
   transform: rotate(30deg);
+  filter: drop-shadow(1px 3px 1px rgb(0 0 0 / 0.4));
+
+  /* filter: invert(35%) sepia(36%) saturate(7009%) hue-rotate(2deg) brightness(104%) contrast(88%); */
+
 }
+
 /* ------------------------------------------------- */
 
 
