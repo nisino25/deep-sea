@@ -34,6 +34,8 @@ let tiles = [
   {point: 0, type: 'hexagon', text: 50, belongsTo: 'nobody', value: 4, x: 580, y: 730},
   {point: 0, type: 'hexagon', text: 50, belongsTo: 'nobody', value: 4, x: 470, y: 730},
   {point: 0, type: 'hexagon', text: 50, belongsTo: 'nobody', value: 4, x: 360, y: 730},
+
+  // {point: 20, type: 'special', text: 50, belongsTo: 'nobody', value: 4, x: 250, y: 730},
 ]
 
 // let pointInTriangle=[0,1,2,3,0,1,2,3,]
@@ -87,47 +89,16 @@ tempArray.push(...array)
 
 
 for(let i in tiles){
+  tiles[i].theIndex = i
   tiles[i].point = tempArray[i]
+  tiles[i].opened = false
+  tiles[i].y+= 20
+
 }
 
 
+let cordination = [
+  {x: 230, y:25},{x: 350, y:25},{x: 470, y:25},{x: 590, y:25},{x: 680, y:90},{x: 590, y:165},{x: 470, y:165},{x: 350, y:165},{x: 240, y:165},{x: 130, y:165},{x: 20, y:235},{x: 130, y:320},{x: 240, y:320},{x: 350, y:320},{x: 460, y:320},{x: 570, y:320},{x: 670, y:380},{x: 570, y:460},{x: 460, y:460},{x: 350, y:460},{x: 240, y:460},{x: 130, y:460},{x: 40, y:540},{x: 130, y:600},{x: 250, y:610},{x: 360, y:610},{x: 470, y:610},{x: 580, y:610},{x: 675, y:680},{x: 580, y:750},{x: 470, y:750},{x: 360, y:750},
+]
 
-
-// console.table(array)
-
-// let index
-// let list
-
-
-// for(let i in tiles){
-//   switch(tiles[i].type){
-//     case 'triangle': 
-//       list = pointInTriangle
-//       index = Math.floor(Math.random()* 4)
-//       tiles[i].point = list[index]
-//       break;
-
-//     case 'square': 
-//       list = pointInSquare
-//       index = Math.floor(Math.random()* 4)
-//       tiles[i].point = list[index]
-//       break;
-
-//     case 'pentagon': 
-//       list = pointInPentagon
-//       index = Math.floor(Math.random()* 4)
-//       tiles[i].point = list[index]
-//       break;
-
-//     case 'hexagon': 
-//       list = pointInHexagon
-//       index = Math.floor(Math.random()* 4)
-//       tiles[i].point = list[index]
-//       break;
-//   }
-// }
-
-
-// how to distribute point
-
-export {tiles}
+export {tiles,cordination}

@@ -2,7 +2,7 @@
   <transition name="fade" >
     <div class='modal-overlay fade-in' v-if="showModal" style="height: 100vh">
       
-        <div class="modal" style=" transition : all 0.6s ease 0s;"
+        <div v-if="!showSummary" class="modal" style=" transition : all 0.6s ease 0s;"
         >
           <div>
             <form onsubmit="event.preventDefault()">
@@ -23,24 +23,69 @@
             </form>
           </div>
         </div>
+
+        <div v-else class="modal" style=" transition : all 0.6s ease 0s;"
+        >
+          <div>
+            <form onsubmit="event.preventDefault()">
+
+              <label>Round Summary</label>
+              <div>
+                <template v-for="(player,i) in players" :key="i">
+                  <div style="margin-bottom: 20px; display: flex;">
+                    <strong>{{player.name}}
+                       <i v-if="!player.hasReturned" class='fas fa-skull-crossbones' style='font-size:30px; color:red'></i>
+                       <i v-else style="font-size:30px; color:green" class="fa">&#xf118;</i>
+                       : {{player?.point}} points</strong>:
+                    <template v-for="(item,i) in player.item" :key="i">
+                      <div class="flip-card" >
+                        <div class="flip-card-inner" :class="[i < openingIndex ? 'card-opened' : '']" >
+                          <div class="flip-card-front">
+                            <img :class="item.type" :src="getImgUrl(item.type)" alt="" style="width: 45px;">
+                          </div>
+                          <div class="flip-card-back" style="color:black">
+                            {{item.point}}
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                    
+                  </div>
+
+                  
+                </template>
+                <button @click="startOpening()" v-if='!opened' class="create" >Open</button>
+                <button @click="setupForNextRound()" v-if='opened && finishedOpen && round < 3' class="create" >next</button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
     </div>
 
   </transition>
 
-  <div>CurrentPlayer: {{currentPlayer?.name}}</div>
-  <div>order index: {{orderIndex}}</div>
+  <div class="wrapper">
+    <div class="submarine">
+    <img src="../public/icons/submarine-svgrepo-com.svg" alt="" :class="[storageTrigger ? 'empty' : '']">
+    <div style="position: relative">
 
-  <div class="submarine">
-    <img src="../public/icons/submarine-svgrepo-com.svg" alt="">
+      
+    </div>
+  </div>
+
+  <div class="storage">
+    <span>{{storage}}</span>
   </div>
 
   <div class="tiles">
     <template v-for="(item,i) in tiles" :key="i">
       <div v-if="item.x !== 0" class="tiles" :class="item.type" :style="`top: ${item.y}px; left: ${item.x}px; color: ${item.color};` ">
-        <img style="fill: crimson;" :src="getImgUrl(item.type)" alt="">
-        <!-- <span :style="textStyle(item)">{{item.point}}</span> -->
-        <!-- <span>{{item.text}}</span> -->
-        <span>{{i}}</span>
+        <img v-if="item.belongsTo == 'nobody'" :src="getImgUrl(item.type)" alt="">
+        <img src="../public/icons/circle.svg" alt="" v-else style="filter: invert(25%) sepia(5%) saturate(1277%) hue-rotate(181deg) brightness(90%) contrast(90%);">
+        <!-- <span>{{item.value}}</span> -->
+        <span>{{item.point}}</span>
       </div>
     </template>
   </div>
@@ -52,53 +97,86 @@
     
   </template>
 
-  <!-- <svg src="../public/icons/triangle.svg" style="position: absolute; top: 50%; left: 50%; translate(-50%,-50%), width: 1000px; height: auto;"></svg> -->
-
   
 
+  <div class="dice">
+    <!-- <span>rolled?: {{hasRolled}}</span><br> -->
+    <div v-if="!movingNow">
 
+      <button v-if="!hasRolled" :style="[hasRolled ? 'opacity: 0.5' : '']" @click="roleTheDice()">Role</button>
+      <button style="margin-left: 20px" v-if="canGoBack" @click="changeDirection()">go back</button>
+      <br>
+      <strong v-if="hasRolled">#: {{diceNum}}</strong><br>
+      <div v-if="hasRolled">
 
-  <div class="basic-data">
-
-    <div class="card storage">
-      Air: {{storage}} <br>
-      <span>Round {{round}}/3</span>
+        <hr style="margin: 10px">
+        <button v-if="pickable && !didAction" @click="pickup()">pick up</button>
+        <button v-if="dropable && !didAction" @click="droppingNow = true">drop</button><br>
+        <br>
+    
+        <button :style="[!hasRolled ? 'opacity: 0.5' : '']" @click="nextRole()">Done</button><br>
+      </div>
     </div>
 
+    <div v-else>
+      <strong>#{{diceNum}}</strong>
+    </div>
+  </div>
+
+  <div class="basic-data">
     
     <template v-for="(item,i) in players" :key="i">
-      <div class="card players" :style="[currentPlayer?.name == item.name ? '' : 'opacity: 0.5']">
+      <div  class="card players" :style="[currentPlayer?.name == item.name ? '' : 'opacity: 0.5'] ">
         <div>
-          {{item.name}}: {{item.location}} <br>  
-          <span v-if="item.goingFowrad">Fowrad</span>
-          <span v-else>Back</span>
+          <span style="font-weight: bold; font-size:20px;" :style="`color:${userColors[i]};`">{{item.name}}</span>: {{item.point}} <br>  
+          <hr>
+          <div>
+            <template v-for="(item,i) in item.item" :key="i">
+              <img @click="drop(i)" :class="item.type" :src="getImgUrl(item.type)" alt="">
+            </template>
+
+             
+
+          </div>
+          <!-- <hr> -->
+          <span v-if="item.goingFowrad">Exploring</span>
+          <span v-else>Returning</span>
         </div>
     </div>
     </template>
   </div>
-
-  <div class="dice">
-    <button :style="[hasRolled ? 'opacity: 0.5' : '']" @click="roleTheDice()">Role</button>
-    <button style="margin-left: 20px" :style="[!canGoBack || !currentPlayer?.goingFowrad || hasRolled ? 'opacity: 0.5' : '']" @click="changeDirection()">go back</button>
-    <br>
-    <strong>#: {{diceNum}}</strong><br>
-    <button :style="[!hasRolled ? 'opacity: 0.5' : '']" @click="nextRole()">Done</button><br>
   </div>
+
+
+  
+
+  
 </template>
 
 <script>
 var randomWords = require('random-words'); 
+
 import AOS from "aos";
-import {tiles} from './const/tiles.js'
+import {tiles, cordination} from './const/tiles.js'
 
 export default {
   name: 'App',
   data(){
     return{
-      // developing: false,
-      developing: true,
+      developing: false,
+      // developing: true,
+
+      minor: true,
+      // minor: false,
 
       showModal: true,
+      showSummary: false,
+      openingIndex: 0,
+      flippingSpeed: 1000,
+      opened: false,
+      finishedOpen: false,
+
+
       capacity: 2,
 
       user1: '',
@@ -107,6 +185,7 @@ export default {
       user4: '',
       user5: '',
       user6: '',
+      userColors: ['crimson','CornflowerBlue','green'],
 
 
       players: [],
@@ -120,10 +199,18 @@ export default {
       orderIndex: 0,
 
       hasRolled: false,
+      movingNow: false,
       diceList: [1,2,3,4,5,6],
       diceNum: 1,
+      storageTrigger: false,
 
       tiles,
+      cordination,
+
+      flipStyle: '',
+
+      droppingNow: false,
+      didAction: false,
 
     }
   },
@@ -161,6 +248,9 @@ export default {
         this.players[i].location = -1
         this.players[i].goingFowrad = true
         this.players[i].hasReturned = false
+        this.players[i].item = []
+        this.players[i].point = 0
+        this.players[i].tempPoints = 0
       }
 
       // console.log(this.players)
@@ -176,20 +266,102 @@ export default {
       
 
     },
+    summary(){
+      this.showModal= true
+      this.showSummary = true
+      this.openingIndex = 0
+    },
 
-    setupForNextRound(){
+    async startOpening(){
+      this.opened = true
+      this.finishedOpen = false
+
+
+      this.openingIndex = 0
+      let count = 0
+      while(count< this.maxLength){
+
+        for(let i in this.players){
+          let player = this.players[i]
+          if(player.item.length > this.openingIndex){
+            if(player.hasReturned){
+
+              let item  = player.item[this.openingIndex]
+              player.point+= item.point
+            }
+            // console.log(item.point)
+          }
+        }
+
+
+        
+        count++
+        this.openingIndex++
+        await this.sleep(this.flippingSpeed)
+        
+      }
+
+      this.finishedOpen = true
+    },
+
+    async setupForNextRound(){
+      this.showModal = false
+      this.opened = false
+      this.finishedOpen = false
+
+      this.hasRolled = false
+      this.storageTrigger = false
+      this.round++
       if(this.round >=3) return
-      console.log('finction called')
+      // console.log('finction called')
       
       
       this.storage = 25
       
       for(let i in this.players){
-        this.players[i].hasReturned = false
-        this.players[i].goingFowrad = true
+        let player = this.players[i]
+        player.location = -1
+        player.hasReturned = false
+        player.goingFowrad = true
+        player.item = []
       }
 
-      console.table(this.players)
+      // console.table(this.players)
+
+      // tiles fixing 
+
+      this.tiles = this.tiles.filter(function(item) {
+        return item.belongsTo == 'nobody'
+      })
+
+
+      // console.log(this.tiles)
+
+      for(let i in this.tiles){
+        let tile = this.tiles[i]
+        tile.x = this.cordination[i].x
+        tile.y = this.cordination[i].y
+      }
+
+      // await this.sleep(2000)
+
+      // let count = 0
+      // let num = 0
+      // while(count < this.tiles.length){
+      //   let tile = this.tiles[count]
+      //   if(tile.belongsTo !== 'nobody'){
+      //     num--
+      //   }else{
+      //     tile.x = this.cordination[num].x
+      //     tile.y = this.cordination[num].y
+      //   }
+      //   count++
+      //   num++
+      // }
+
+
+      
+
 
       
     },
@@ -198,15 +370,20 @@ export default {
       if(this.hasRolled) return
       let index = Math.floor(Math.random()* this.diceList.length)
       this.diceNum = this.diceList[index]
+      console.log(this.diceNum)
+      let tempNum = this.diceNum- this.currentPlayer.item.length
+
+      
+
       let count = 0
       let flag = false
+      this.movingNow = true
       if(this.currentPlayer.goingFowrad){
-        while(count < this.diceNum){
+        while(count < tempNum){
           flag= false
-          await this.sleep(500)
+          await this.sleep(660)
 
           for(let i in this.players){
-            console.log('huh?')
             if(this.players[i].location == this.currentPlayer.location +1){
               console.log(`oh hey : ${this.players[i].name}`)
               flag = true
@@ -224,22 +401,58 @@ export default {
 
 
       }else{
-        this.currentPlayer.location-= this.diceNum
-        if(this.currentPlayer.location <= 0){
-          this.currentPlayer.hasReturned = true
-          this.currentPlayer.location = 0
+        if(tempNum > 0){
           
-        } 
+          while(count < tempNum){
+            flag= false
+            await this.sleep(660)
+
+            for(let i in this.players){
+              if(this.players[i].location == this.currentPlayer.location -1){
+                console.log(`oh hey : ${this.players[i].name}`)
+                flag = true
+              }
+            }
+
+            this.currentPlayer.location--
+            if(flag) count--
+
+            if(this.currentPlayer.location <= -1){
+              this.currentPlayer.hasReturned = true
+              this.currentPlayer.location = -1
+
+              
+            } 
+
+            count++
+          }
+          // this.currentPlayer.location-= tempNum
+          
+
+        }
       }
+
+      this.movingNow = false
       this.hasRolled = true
     },
 
     nextRole(){
       if(!this.hasRolled) return
+      if(this.storageTrigger){
+        this.summary()
+        return
+      }
       this.orderIndex++
 
       let flag= false
       while(!flag){
+        if(!this.currentPlayer?.hasReturned) {
+          this.storage-=this.currentPlayer.item.length
+          if(this.storage <= 0){
+            this.storage =0
+            this.storageTrigger = true
+          } 
+        }
         if(this.currentPlayer?.hasReturned){
           // this.orderIndex++
           if(this.hasAllReturned){
@@ -257,21 +470,64 @@ export default {
       if(!this.hasAllReturned) return
 
 
-      console.log('reahed here?')
-      this.round++
-      this.setupForNextRound()
+      this.summary()
+      // this.setupForNextRound()
     },
+
+
 
     changeDirection(){
       if(!this.canGoBack) return
       this.currentPlayer.goingFowrad = false
     },
 
-    canGoBack(){
-      if(!this.currentPlayer.goingFowrad || this.hasRolled || this.currentPlayer.location == 0) return false
+    pickup(){
+      let index = this.currentPlayer.location
+      this.tiles[index].belongsTo = this.currentPlayer.name
+      this.currentPlayer.item.push(this.tiles[index])
 
-      return true
+      this.didAction = true
+      // console.log(this.currentPlayer.item)
+
+      // console.table(this.players.item)
     },
+
+    drop(i){
+      if(!this.droppingNow) return
+      let text = `${this.currentPlayer.name}, would like to drop this ${this.currentPlayer.item[i].value} point tiles`
+      if(confirm(text)){
+        let index = this.currentPlayer.location
+        this.tiles[index].belongsTo = 'nobody'
+        this.tiles[index].point = this.currentPlayer.item[i].point
+        this.tiles[index].pvalue = this.currentPlayer.item[i].value
+
+        let player = this.players.find(({ name }) => name === this.rolesOrder[this.orderIndex]);
+        
+        // console.log(player.item)
+
+        player.item[i].belongsTo = 'nobody'
+        player.item = player.item.filter(function(i) {
+          return i.belongsTo == 'nobody'
+        })
+        
+
+        this.droppingNow = false
+        this.didAction = true
+      }else{
+        this.droppingNow = false
+      }
+      // let index = this.currentPlayer.location
+      // this.tiles[index].belongsTo = 'nobody'
+      // this.tiles[index].poinßt = 
+
+
+    },
+
+
+
+
+
+    
 
     getLocation(player,i){
       let index = player.location
@@ -281,20 +537,17 @@ export default {
       
       switch(i){
         case 0:
-          style = 'filter: invert(73%) sepia(6%) saturate(6893%) hue-rotate(311deg) brightness(96%) contrast(106%); '
+          style = 'filter: invert(17%) sepia(54%) saturate(6329%) hue-rotate(339deg) brightness(88%) contrast(97%);'
           break;
 
         case 1:
-          style ='filter: invert(87%) sepia(30%) saturate(229%) hue-rotate(351deg) brightness(106%) contrast(97%);'
+          style ='filter: invert(55%) sepia(30%) saturate(1619%) hue-rotate(192deg) brightness(100%) contrast(87%);'
           break;
 
         case 2:
           style ='filter: invert(42%) sepia(15%) saturate(2441%) hue-rotate(59deg) brightness(90%) contrast(87%);'
           break;
 
-        // case :
-        //   style =''
-        //   break;
 
 
         
@@ -302,7 +555,7 @@ export default {
 
       if(player.goingFowrad){
 
-        if(index < 5){
+        if(index < 4){
           style+= 'transform: scaleX(-1); '
         }else if(index >= 10 && index < 17){
           style+= 'transform: scaleX(-1); '
@@ -344,6 +597,30 @@ export default {
       return require('../public/icons/'+ link + '.svg')
     },
 
+    getPlayerColor(i){
+      let style
+      switch(i){
+        case 0:
+          style = 'filter: invert(73%) sepia(6%) saturate(6893%) hue-rotate(311deg) brightness(96%) contrast(106%); '
+          break;
+
+        case 1:
+          style ='filter: invert(87%) sepia(30%) saturate(229%) hue-rotate(351deg) brightness(106%) contrast(97%);'
+          break;
+
+        case 2:
+          style ='filter: invert(42%) sepia(15%) saturate(2441%) hue-rotate(59deg) brightness(90%) contrast(87%);'
+          break;
+
+        
+      }
+
+      style+= 'transform: scaleX(-0.75); width: 100px; height: auto;'
+      return style
+
+
+    },
+
     
 
     incrementCap(){
@@ -351,19 +628,76 @@ export default {
       this.capacity++
     },
 
-    test(){
-      this.user1 =  randomWords()
-      this.user2 =  randomWords()
-      this.user3 =  randomWords()
-      this.user4 =  randomWords()
-      this.user5 =  randomWords()
-      this.user6 =  randomWords()
+    async test(){
+      this.user1 =  'nozo'
+      this.user2 =  'becca'
+      this.user3 =  'mom'
+
+      this.flippingSpeed = 100
+      
+      // this.user4 =  randomWords()
+      // this.user5 =  randomWords()
+      // this.user6 =  randomWords()
 
       this.capacity++
 
+      
+
       this.startGame()
+      
+      this.showModal = true
+      this.showSummary = true
+
+      this.players[0].item.push(this.tiles[3])
+
+      this.players[1].item.push(this.tiles[1])
+      this.players[1].item.push(this.tiles[11])
+      this.players[1].item.push(this.tiles[21])
+      this.players[1].item.push(this.tiles[30])
+
+      this.players[2].item.push(this.tiles[2])
+      this.players[2].item.push(this.tiles[12])
+      this.players[2].item.push(this.tiles[5])
+      this.players[2].item.push(this.tiles[15])
+      this.players[2].item.push(this.tiles[20])
+      this.players[2].item.push(this.tiles[22])
+
+      
+
+      for(let i in this.players){
+        let player = this.players[i]
+        for(let index in player.item){
+          
+          this.tiles[player.item[index].theIndex].belongsTo = player.name
+        }
+      }
+
+      this.players[0].hasReturned = true
+      this.players[1].hasReturned = true
+      this.players[2].hasReturned = true
+
+      console.log(randomWords())
+
+      // let text
+      // for(let i in this.tiles){
+      //   let tile = this.tiles[i]
+      //   text+= `{x: ${tile.x}, y:${tile.y}},`
+      // }
+
+      // console.log(text)
     },
 
+    async minorTest(){
+      this.user1 =  'nozo'
+      this.user2 =  'becca'
+      this.user3 =  'mom'
+
+      // this.flippingSpeed = 100
+
+      this.capacity++
+    }
+
+    
 
     
   },
@@ -381,6 +715,8 @@ export default {
 
 
     if(this.developing) this.test()
+
+    if(this.minor) this.minorTest()
 
     // this.user1 =  randomWords()
     //   this.user2 =  randomWords()
@@ -415,6 +751,59 @@ export default {
       return true
 
     },
+
+    canGoBack(){
+      if(!this.players) return false
+      if(!this.currentPlayer) return false
+
+      if(!this.currentPlayer?.goingFowrad || this.hasRolled || this.currentPlayer?.location == -1) return false
+
+      return true
+    },
+    
+    pickable(){
+      if(!this.currentPlayer) return false
+
+      let index = this.currentPlayer.location
+      if(this.tiles[index]?.belongsTo == 'nobody'){
+        return true
+      }
+
+      if(this.currentPlayer.location == -1) return false
+
+      return false
+
+    },
+
+    dropable(){
+      if(!this.currentPlayer) return false
+
+      let index=  this.currentPlayer.location
+      if(this.tiles[index]?.belongsTo == 'nobody') return false
+
+      if(this.currentPlayer.item.length == 0) return false
+
+      if(this.currentPlayer.location == -1) return false
+
+      return true
+
+      
+    },
+    
+
+    maxLength(){
+      if(!this.currentPlayer) return false
+
+      // let count = 0 
+      let tempMax = 0
+
+      for(let i in this.players){
+        if(this.players[i].item.length > tempMax)
+        tempMax = this.players[i].item.length
+      }
+
+      return tempMax
+    },
   },
 
   watch:{
@@ -424,6 +813,16 @@ export default {
         alert('hey the game is over')
       }
     },
+    currentPlayer(){
+      this.droppingNow = false
+      this.didAction = false
+      // console.log('player change')
+      
+
+      
+
+      
+    }
     // orderIndex(){
     //   console.log(`index: ${this.orderIndex}`)
     // }
@@ -443,6 +842,8 @@ export default {
 }
 
 body{
+  /* overflow: hidden; */
+  /* position: fixed; */
   /* background-color: red; */
 
   background-image: linear-gradient(lightblue, darkblue); 
@@ -471,8 +872,8 @@ body{
   transform: translate(-50%,-50%);
   z-index: 99;
   
-  width: 75%;
-  max-width: 600px;
+  width: 85%;
+  max-width: 700px;
   background-color: #f2f2f2;
   border-radius: 16px;
   
@@ -546,9 +947,11 @@ input[type=text], select {
   float: left;
   padding: 2px 10px;
 }
-/* ------------------------------------------------- */
+
+
+/* ------------------------------------------------------- */
 .submarine{
-  top: 0px;
+  top: -15px;
   left:30px;
 
   aspect-ratio: 2/1;
@@ -562,7 +965,29 @@ input[type=text], select {
   transform: scaleX(-1);
   width: 175px;
   height: auto;
-  filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4));
+  /* d */
+}
+
+.empty{
+  filter: invert(11%) sepia(80%) saturate(6296%) hue-rotate(12deg) brightness(93%) contrast(112%);
+}
+
+.storage span{
+  position: absolute;
+  top: 0%;
+  left:5%;
+
+  z-index: 20;
+  font-size: 350%;
+
+  /* width: 100px;
+  height: 100px; */
+
+  color: #FF6D28;
+  font-weight: bold;
+  /* background-color: black; */
+  /* border-radius: 50%; */
+
 }
 
 .tiles{
@@ -570,6 +995,7 @@ input[type=text], select {
   width: 90px;
   
   position: absolute;
+  transition: 2s ease-in;
   /* background-color: purple; */
   /* position:absolute; */
 }
@@ -591,8 +1017,16 @@ input[type=text], select {
   
 }
 
+.occupied{
+  filter: invert(25%) sepia(5%) saturate(1277%) hue-rotate(181deg) brightness(90%) contrast(90%);
+}
+
 .triangle img{
   filter: invert(29%) sepia(10%) saturate(2619%) hue-rotate(359deg) brightness(95%) contrast(95%);
+
+  
+  /* box-shadow: 10px 0 5px -2px #888; */
+  /* filter: drop-shadow(3px 5px 2px rgb(0 0 0 / 0.4)); */
 }
 
 .square img{
@@ -615,85 +1049,176 @@ input[type=text], select {
   filter: invert(86%) sepia(17%) saturate(4073%) hue-rotate(347deg) brightness(99%) contrast(82%);
 }
 
-/* .triangle-tile{ 
-  aspect-ratio: 1/1;
-  width: 90px;
-  
-  position: absolute;
-  background-color: purple;
-} */
+.special img{
+  filter: invert(85%) sepia(72%) saturate(6396%) hue-rotate(359deg) brightness(103%) contrast(101%);
+}
+
+.special span{
+  color: black;
+}
+
 .player-pawn{
   
   position: absolute;
-  transition: 0.75s ease-in;
+  transition: 0.33s ease-in;
   z-index: 10;
+  /* display: none; */
 }
 
-.player-pawn img{
+.player-pawn img, .modal-overlay img{
   /* transform: scaleX(-1); */
   width: 90px;
   height: auto;
-  transform: rotate(30deg);
+  /* transform: rotate(30deg); */
   filter: drop-shadow(1px 3px 1px rgb(0 0 0 / 0.4));
 
   /* filter: invert(35%) sepia(36%) saturate(7009%) hue-rotate(2deg) brightness(104%) contrast(88%); */
 
 }
 
-/* ------------------------------------------------- */
+.modal-overlay img{
+  width: 50px;
+  height: auto;
+  margin-right: 10px;
+  filter: drop-shadow(1px 3px 1px rgb(0 0 0 / 0.4));
+}
 
+/* ------------------------------------------------- */
+.dice{
+  position: absolute;
+  background-color: #666;
+  border-radius: 10px;
+  padding: 30px;
+  bottom: 15px;
+  left: 20px;
+  color: white;
+
+  transition: 1s;
+  transition-property: width
+}
 
 
 
 .basic-data{
   position: absolute;
-  bottom: 0px;
-  left: 2.5%;
+  bottom: 15px;
+  right: 15px;
   /* background-color: lightgrey; */
   display: flex;
   justify-content: space-between;
-  width: 60%;
-  height: 100px;
+  width: 520px;
+  height: 200px;
 
   /* transform: translateX(30%) */
 }
 
 .basic-data .card{
-  background-image: linear-gradient(Coral, BlanchedAlmond);
-  
+  background-image: linear-gradient(white, grey);
   position: relative;
-  /* padding: 0px; */
-  aspect-ratio: 2/1;
-  width: 100px;
-  height: 70px;
+  width: 20%;
   border-radius: 5px;
-  /* width: 100%; */
-  /* padding: 0px; */
+  padding: 5px;
+}
+
+.basic-data hr {
+  border: 1px solid red;
+  width: 75%;
+  /* text-align: center; */
+  margin: auto auto;
+}
+
+
+.basic-data .card img{
+  width: 30px;
+  margin: 5px;
+  height: auto;
+}
+
+.basic-data .triangle,.modal-overlay .triangle{
+  filter: invert(29%) sepia(10%) saturate(2619%) hue-rotate(359deg) brightness(95%) contrast(95%);
+}
+.basic-data .square ,.modal-overlay .square{
+  width: 85px;
+  height: auto;
+  filter: invert(48%) sepia(9%) saturate(2540%) hue-rotate(360deg) brightness(103%) contrast(90%);
+}
+.basic-data .pentagon,.modal-overlay .pentagon{
+  width: 105px;
+  height: auto;
+  filter: invert(81%) sepia(9%) saturate(3224%) hue-rotate(347deg) brightness(82%) contrast(79%);
+
+}
+.basic-data .hexagon ,.modal-overlay .hexagon {
+  width: 95px;
+  height: auto;
+  filter: invert(86%) sepia(17%) saturate(4073%) hue-rotate(347deg) brightness(99%) contrast(82%);
 }
 
 .basic-data .card div{
   padding: 0px;
   width: 100%;
   /* background-color: red; */
-  position: absolute;
+  /* position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%,-50%); */
 }
 
-.basic-data .storage{
+/* .basic-data .storage{
   width: 100%;
   background-image: linear-gradient( BlanchedAlmond,GreenYellow); 
-  /* padding: 15px; */
   aspect-ratio: 3/2;
   width: 20%;
   border-radius: 5px;
+} */
+
+
+
+
+.flip-card {
+  background-color: transparent;
+  
 }
 
-.dice{
-  position: absolute;
-  bottom: 20px;
-  right: 7.5%;
-  color: white;
+/* This container is needed to position the front and back side */
+.flip-card-inner {
+  position: relative;
+  /* width: 100%;
+  height: 100%; */
+  text-align: center;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
 }
+
+/* Do an horizontal flip when you move the mouse over the flip box container */
+.flip-card:hover .flip-card-inner, .card-opened {
+  transform: rotateY(180deg);
+}
+
+/* Position the front and back side */
+.flip-card-front, .flip-card-back {
+  /* position: absolute;
+  width: 100%;
+  height: 100%; */
+  -webkit-backface-visibility: hidden; /* Safari */
+  backface-visibility: hidden;
+}
+
+/* Style the front side (fallback if image is missing) */
+.flip-card-front {
+  /* background-color: #bbb; */
+  color: black;
+}
+
+/* Style the back side */
+.flip-card-back {
+  /* margin-right: 20px; */
+  position: absolute;
+  top:0;
+  left: 10px;
+  /* background-color: dodgerblue; */
+  color: white;
+  transform: rotateY(180deg);
+}
+
 </style>
