@@ -84,8 +84,8 @@
       <div v-if="item.x !== 0" class="tiles" :class="item.type" :style="`top: ${item.y}px; left: ${item.x}px; color: ${item.color};` ">
         <img v-if="item.belongsTo == 'nobody'" :src="getImgUrl(item.type)" alt="">
         <img src="../public/icons/circle.svg" alt="" v-else style="filter: invert(25%) sepia(5%) saturate(1277%) hue-rotate(181deg) brightness(90%) contrast(90%);">
-        <!-- <span>{{item.value}}</span> -->
-        <span>{{item.point}}</span>
+        <span>{{item.value}}</span>
+        <!-- <span>{{item.point}}</span> -->
       </div>
     </template>
   </div>
